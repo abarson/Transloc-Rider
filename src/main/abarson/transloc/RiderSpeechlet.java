@@ -18,7 +18,11 @@ import com.amazon.speech.speechlet.SessionEndedRequest;
 import com.amazon.speech.speechlet.SessionStartedRequest;
 import com.amazon.speech.speechlet.SpeechletResponse;
 import com.amazon.speech.speechlet.SpeechletV2;
+import com.amazon.speech.ui.Card;
 import com.amazon.speech.ui.PlainTextOutputSpeech;
+import com.amazon.speech.ui.Reprompt;
+import com.amazon.speech.ui.SimpleCard;
+import com.amazon.speech.ui.SsmlOutputSpeech;
 
 import abarson.transloc.api.ArrivalMessage;
 import abarson.transloc.api.Route;
@@ -26,6 +30,7 @@ import abarson.transloc.api.Stop;
 import abarson.transloc.api.TranslocApi;
 import abarson.transloc.core.DataProcessor;
 import abarson.transloc.core.ResponseBuilder;
+import abarson.transloc.core.ResponseObject;
 import abarson.transloc.exception.InvalidInputException;
 import abarson.transloc.exception.RouteException;
 import abarson.transloc.exception.StopException;
@@ -35,6 +40,8 @@ import abarson.transloc.validation.Validator;
 
 public class RiderSpeechlet implements SpeechletV2{
 
+	public static final String INVOCATION_NAME = "Rider";
+	
 	private static Logger log = LoggerFactory.getLogger(RiderSpeechlet.class);
 	
 	private List<Route> routeList;
@@ -49,15 +56,7 @@ public class RiderSpeechlet implements SpeechletV2{
 		log.info("onSessionStarted requestId={}, sessionId={}", request.getRequestId(),
 			    session.getSessionId());
 		
-		//initialize route and stop list
-		try {
-			routeList = TranslocApi.getRoutes();
-			stopList = TranslocApi.getStops();
-			activeRoutes = DataProcessor.getActiveRouteMap(routeList);
-		} catch (JSONException | IOException e) {
-			log.error(e.getMessage());
-			//return a failure response
-		}
+		
 		
 	}
 
@@ -69,13 +68,8 @@ public class RiderSpeechlet implements SpeechletV2{
 			    session.getSessionId());
 		
 		
-		if (routeList == null || stopList == null){
-			//return new failure response
-		}
-		
-		PlainTextOutputSpeech speech = new PlainTextOutputSpeech();
-		speech.setText("This is called from on launch.");
-		return SpeechletResponse.newTellResponse(speech);
+		ResponseObject response = ResponseBuilder.getWelcomeResponse();
+		return newAskResponse(response.getSsmlSpeech(), "What stop would you like shuttle information for?");
 	}
 
 	@Override
@@ -85,8 +79,17 @@ public class RiderSpeechlet implements SpeechletV2{
 		log.info("onIntent requestId={}, sessionId={}", request.getRequestId(),
 			    session.getSessionId());
 		
-		if (routeList == null || stopList == null){
-			//return new failure response
+		
+		ResponseObject output;
+		//initialize route and stop list
+		try {
+			routeList = TranslocApi.getRoutes();
+			stopList = TranslocApi.getStops();
+			activeRoutes = DataProcessor.getActiveRouteMap(routeList);
+		} catch (JSONException | IOException e) {
+			log.error(e.getMessage());
+			output = ResponseBuilder.getApiErrorResponse();
+			return newTellResponse(output.getSsmlSpeech());
 		}
 		
 		Intent intent = request.getIntent();
@@ -97,11 +100,16 @@ public class RiderSpeechlet implements SpeechletV2{
 		switch (intent.getName()){
 		case "GetArrivalsIntent":
 			if (activeRoutes.isEmpty()){
-				//return new NoShuttles response
+				output = ResponseBuilder.getNoServiceResponse();
+				return newTellResponse(output.getSsmlSpeech(), buildCard(output.getCardTitle(), output.getCardText()));
 			}
 			
 			String routeName = getValueFromSlot(intent, "Route");
 			String stopName = getValueFromSlot(intent, "Stop");
+			
+			if (stopName == null){
+				stopName = "";
+			}
 			
 			//if the stopName is invalid, this throws an exception
 			stopName = StopCorrector.correctStop(stopName);
@@ -123,30 +131,42 @@ public class RiderSpeechlet implements SpeechletV2{
 							feedback = "There are no " + routeName + " shuttles coming to " + stopName + " any time soon. However, ";
 						}
 					}
-				} catch (RouteException e){
-					feedback = e.getMessage() + " However, ";
+				} catch (InvalidInputException | RouteException e){
+					feedback = e.getMessage() + " ";
 					arrivals = TranslocApi.getArrivalTimes(stop.getStop_id());
+					if (!arrivals.isEmpty()){
+						feedback += "However, ";
+					}
 				} 
 			} else { //if the user didn't provide a route, just generate predictions for all routes coming to this stop
 				arrivals = TranslocApi.getArrivalTimes(stop.getStop_id());
 			}
-			
-			String output = ResponseBuilder.getArrivalTimeResponse(arrivals, routeList, stopList, stop);
-			
-			speech = new PlainTextOutputSpeech();
-			speech.setText(feedback + output);
-			return SpeechletResponse.newTellResponse(speech);
-			
+			output = ResponseBuilder.getArrivalTimeResponse(arrivals, routeList, stopList, stop);
+			return newTellResponse(feedback + output.getSsmlSpeech(), buildCard(output.getCardTitle(), output.getCardText()));
+		case "ActiveRoutesIntent":
+			output = ResponseBuilder.getInServiceShuttlesResponse(activeRoutes);
+			return newTellResponse(output.getSsmlSpeech(), buildCard(output.getCardTitle(), output.getCardText()));
+		case "AMAZON.StopIntent":
+			output = ResponseBuilder.getStopResponse();
+			return newTellResponse(output.getSsmlSpeech(), buildCard(output.getCardTitle(), output.getCardText()));
+		case "AMAZON.CancelIntent":
+			output = ResponseBuilder.getStopResponse();
+			return newTellResponse(output.getSsmlSpeech(), buildCard(output.getCardTitle(), output.getCardText()));
+		case "AMAZON.HelpIntent":
+			output = ResponseBuilder.getHelpResponse();
+			return newAskResponse(output.getSsmlSpeech(), "What stop would you like shuttle information for?");
 		default:
 			speech = new PlainTextOutputSpeech();
 			speech.setText("I did not understand you.");
 			return SpeechletResponse.newTellResponse(speech);
 		}
-		} catch (StopException | InvalidInputException | IOException | JSONException e){
+		} catch (InvalidInputException e){
+			return newAskResponse(e.getMessage() + " Please repeat your stop.", "Please repeat your stop.");
+		} catch (StopException | IOException | JSONException e){
 			speech = new PlainTextOutputSpeech();
-			speech.setText("Something went wrong. " + e.getMessage());
-			return SpeechletResponse.newTellResponse(speech);
-		}
+			speech.setText(e.getMessage());
+			return SpeechletResponse.newTellResponse(speech, buildCard(INVOCATION_NAME, e.getMessage()));
+		} 
 	}
 
 	@Override
@@ -156,6 +176,68 @@ public class RiderSpeechlet implements SpeechletV2{
 		log.info("onSessionEnded requestId={}, sessionId={}", request.getRequestId(),
 			    session.getSessionId());
 		
+	}
+
+	
+	/**
+	 * Wrapper for creating the Ask response from the input strings.
+
+	 * @param stringOutput
+	 *            the output to be spoken
+	 * @param repromptText
+	 *            the reprompt for if the user doesn't reply or is
+	 *            misunderstood.
+	 * @return SpeechletResponse the speechlet response
+	 */
+	private SpeechletResponse newAskResponse(String stringOutput, String repromptText) {
+		SsmlOutputSpeech outputSpeech = new SsmlOutputSpeech();
+		outputSpeech.setSsml("<speak> " + stringOutput + " </speak>");
+
+		PlainTextOutputSpeech repromptOutputSpeech = new PlainTextOutputSpeech();
+		repromptOutputSpeech.setText(repromptText);
+		Reprompt reprompt = new Reprompt();
+		reprompt.setOutputSpeech(repromptOutputSpeech);
+		//SimpleCard card = buildCard("FOR DEBUGGING");
+		//return SpeechletResponse.newAskResponse(repromptOutputSpeech, reprompt, card);
+		return SpeechletResponse.newAskResponse(outputSpeech, reprompt);
+	}
+	
+	/**
+	 * Wrapper for creating the Ask tell from the input string.
+
+	 * @param message
+	 *            the output to be spoken
+	 * @return SpeechletResponse the speechlet response
+	 */
+	private SpeechletResponse newTellResponse(String message) {
+		SsmlOutputSpeech outputSpeech = new SsmlOutputSpeech();
+		outputSpeech.setSsml("<speak> " + message + " </speak>");
+		return SpeechletResponse.newTellResponse(outputSpeech);
+	}
+	
+	/**
+	 * Wrapper for creating the Ask tell from the input string and card.
+
+	 * @param message
+	 *            the output to be spoken
+	 * @return SpeechletResponse the speechlet response
+	 */
+	private SpeechletResponse newTellResponse(String message, Card card) {
+		SsmlOutputSpeech outputSpeech = new SsmlOutputSpeech();
+		outputSpeech.setSsml("<speak> " + message + " </speak>");
+		return SpeechletResponse.newTellResponse(outputSpeech, card);
+	}
+	
+	/**
+	 * Wrapper for creating a SimpleCard from the input string.
+	 * @param s The failure message
+	 * @return SimpleCard a failure card
+	 */
+	private SimpleCard buildCard(String title, String s){
+		SimpleCard card=new SimpleCard();
+		card.setTitle(title);
+		card.setContent(s);
+		return card;
 	}
 	
 	public String getValueFromSlot(Intent intent, String name){

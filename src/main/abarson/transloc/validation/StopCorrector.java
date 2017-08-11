@@ -34,6 +34,8 @@ public final class StopCorrector {
 
 		{
 			put("WDW", "WDW");
+			put("W. T. W", "WDW");
+			put("BBW", "WDW");
 			put("PFG", "PFG");
 			put("HARRIS/MILLIS", "HARRIS/MILLIS");
 			put("UNIVERSITY HEIGHTS", "UNIVERSITY HEIGHTS");
@@ -41,14 +43,21 @@ public final class StopCorrector {
 			put("ROYAL TYLER THEATRE", "ROYAL TYLER THEATRE");
 			put("BILLINGS LIBRARY", "BILLINGS LIBRARY");
 			put("MCAULEY", "MCAULEY");
+			put("MCAULAY", "MCAULEY");
+			put("MACAULAY", "MCAULEY");
+			put("MACAULEY", "MCAULEY");
+			put("MCCULLY", "MCAULEY");
 			put("MERCY HALL", "MERCY HALL");
 			put("COOK/KALKIN", "COOK/KALKIN"); //out-of-season as of 8/8/2017
 			put("BAILEY-HOWE LIBRARY", "BAILEY-HOWE LIBRARY");
+			put("THE LIBRARY", "BAILEY-HOWE LIBRARY");
+			put("LIBRARY", "BAILEY-HOWE LIBRARY");
 			put("CBW", "CBW");
 			put("GIVEN/ROWELL", "GIVEN/ROWELL");
 			put("DAVIS SOUTH", "DAVIS SOUTH");
 			put("COOLIDGE HALL", "COOLIDGE HALL");
 			put("REDSTONE APTS.", "REDSTONE APTS.");
+			put("REDSTONE", "REDSTONE APTS.");
 			put("JEANNE MANCE", "JEANNE MANCE");
 			put("PEARL/UNION", "PEARL/UNION");
 			put("JEANNE MANCE", "JEANNE MANCE");
@@ -74,7 +83,7 @@ public final class StopCorrector {
 	public static String correctStop(String stopName) throws InvalidInputException{
 		String stop = expectedStops.get(stopName.toUpperCase());	
 		if (stop == null){
-			throw new InvalidInputException("This stop does not exist.");
+			throw new InvalidInputException("I did not understand your stop.");
 		}
 		return stop;
 	}

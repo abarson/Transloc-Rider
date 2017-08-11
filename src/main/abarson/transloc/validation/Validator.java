@@ -3,6 +3,7 @@ package abarson.transloc.validation;
 import java.util.List;
 import java.util.Map;
 
+
 import abarson.transloc.api.Route;
 import abarson.transloc.api.Stop;
 import abarson.transloc.exception.RouteException;
@@ -41,11 +42,11 @@ public final class Validator {
 	 */
 	public static Route validateRouteAndStop(List<Route> routeList, String routeName, Stop stop, Map<String, Boolean> activeRoutes) throws RouteException{
 		Route route = fetchRoute(routeList, routeName);
-		if (!activeRoutes.get(route.getLong_name().toUpperCase())){
-			throw new RouteException("The " + routeName + " is not currently active.");
-		}
 		if (!checkRouteContainsStop(route, stop)){
-			throw new RouteException("The " + routeName + " doesn't stop at " + stop.getName());
+			throw new RouteException("The " + routeName + " doesn't stop at " + stop.getName() + ".");
+		}
+		if (!activeRoutes.get(route.getLong_name().toUpperCase())){
+			throw new RouteException("The " + routeName + " is not currently running.");
 		}
 		return route;
 	}

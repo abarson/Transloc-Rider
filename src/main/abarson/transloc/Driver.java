@@ -1,7 +1,6 @@
 package abarson.transloc;
 
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
@@ -71,7 +70,7 @@ public class Driver {
 					stop = Validator.validateStop(stopList, stopName);
 					
 					arrivals = TranslocApi.getArrivalTimes(stop.getStop_id());
-					output = ResponseBuilder.getArrivalTimeResponse(arrivals, routeList, stopList, stop);
+					output = ResponseBuilder.getArrivalTimeResponse(arrivals, routeList, stopList, stop).getTextSpeech();
 					break;
 				case("2"):
 					if (activeRoutes.isEmpty()){
@@ -111,7 +110,7 @@ public class Driver {
 					
 					
 			
-					output = feedback + "\n" + ResponseBuilder.getArrivalTimeResponse(arrivals, routeList, stopList, stop);
+					output = feedback + "\n" + ResponseBuilder.getArrivalTimeResponse(arrivals, routeList, stopList, stop).getTextSpeech();
 					break;
 				case("3"):
 					System.out.println("What is your route?");
@@ -120,7 +119,7 @@ public class Driver {
 					
 					route = Validator.fetchRoute(routeList, routeName);
 					
-					output = ResponseBuilder.getRouteInformationResponse(stopList, routeList, route);
+					output = ResponseBuilder.getRouteInformationResponse(stopList, routeList, route).getTextSpeech();
 					break;
 				case("4"):
 					System.out.println("What is your stop?");
@@ -130,10 +129,10 @@ public class Driver {
 					//if there are no shuttles coming to the stop in question, this throws an exception
 					stop = Validator.validateStop(stopList, stopName);
 					
-					output = ResponseBuilder.getStopInformationResponse(stopList, routeList, stop);
+					output = ResponseBuilder.getStopInformationResponse(stopList, routeList, stop).getTextSpeech();
 					break;
 				case("5"):
-					output = ResponseBuilder.getInServiceShuttlesResponse(activeRoutes);
+					output = ResponseBuilder.getInServiceShuttlesResponse(activeRoutes).getTextSpeech();
 					break;
 				} 
 				

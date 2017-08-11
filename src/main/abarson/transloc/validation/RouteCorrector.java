@@ -33,9 +33,14 @@ public final class RouteCorrector {
 
 		{
 			put("SUMMER ROUTE", "SUMMER ROUTE");
+			put("SUMMER SHUTTLE", "SUMMER ROUTE");
+			put("SUMMER BUS", "SUMMER ROUTE");
 			put("ON-CAMPUS", "ON-CAMPUS");
+			put("ON CAMPUS", "ON-CAMPUS");
 			put("OFF CAMPUS LATE NIGHT", "OFF CAMPUS LATE NIGHT");
+			put("LATE NIGHT", "OFF CAMPUS LATE NIGHT");
 			put("OFF-CAMPUS", "OFF-CAMPUS");
+			put("OFF CAMPUS", "OFF-CAMPUS");
 			put("REDSTONE EXPRESS", "REDSTONE EXPRESS");
 			
 		}
@@ -55,7 +60,7 @@ public final class RouteCorrector {
 	public static String correctRoute(String routeName) throws InvalidInputException{
 		String route = expectedRoutes.get(routeName.toUpperCase());	
 		if (route == null){
-			throw new InvalidInputException("This route does not exist.");
+			throw new InvalidInputException("I did not understand your route.");
 		}
 		return route;
 	}

@@ -6,6 +6,8 @@ import java.util.List;
 import java.util.Map;
 
 import org.json.JSONException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import abarson.transloc.api.ArrivalMessage;
 import abarson.transloc.api.Route;
@@ -22,6 +24,8 @@ public final class DataProcessor {
 	
 	private DataProcessor(){}
 	
+	private static Logger log = LoggerFactory.getLogger(DataProcessor.class);
+	
 	/**
 	 * Given the current time and arrival time as Strings in the format (HH:mm:ss), get the amount of time
 	 * until the shuttle arrives.
@@ -32,6 +36,8 @@ public final class DataProcessor {
 	 * @return The amount of time until the shuttle arrives.
 	 */
 	public static String calculateArrivalTime(String currentTime, String arrivalTime){ 
+		log.info("currentTime: {}, arrivalTime: {}", currentTime, arrivalTime);
+		
 		//create two arrays of Strings that contain the hour, minutes, and seconds in each index
 		String[]currentTimeSplit = currentTime.split(":");
 		String[]arrivalTimeSplit = arrivalTime.split(":");
@@ -53,10 +59,10 @@ public final class DataProcessor {
 		
 		String theTime = "";
 		if (estimation[0] > 0){ //if arrival time is over an hour
-			theTime = "Over an hour!";
+			theTime = "";
 		} else { //otherwise, format a String from the minutes and seconds
 			int minutes = estimation[1];
-			int seconds = estimation[2];
+			/*int seconds = estimation[2];
 			if (minutes < 10){
 				theTime += "0" + minutes + ":";
 			} else {
@@ -66,6 +72,16 @@ public final class DataProcessor {
 				theTime += "0" + seconds;
 			} else {
 				theTime += seconds + "";
+			}*/
+			if (minutes > 30){
+				theTime = ""; //ignore anything above 30 minutes
+			} else if (minutes < 1){
+				theTime = "now";
+			} else if (minutes < 2){
+				theTime = "under 2 minutes";
+			}
+			else {
+				theTime += minutes + " minutes";
 			}
 		}
 		return theTime;
@@ -75,25 +91,32 @@ public final class DataProcessor {
 		return time.substring(11, 19);
 	}
 	
+	/* This method is EXTREMELY inefficient and needs to be optimized.
+	 * Currently iterates through every arrival prediction for every stop at UVM.
+	 * There is definitely a more optimal way to do this.
+	 */
+	//TODO: optimize
 	public static Map<String, Boolean> getActiveRouteMap(List<Route> routeList) throws IOException, JSONException{
 		Map<String, Boolean> activeRoutes = new HashMap<String, Boolean>();
-		List<ArrivalMessage> arrivalMessages = TranslocApi.getArrivalTimes("","");
+		List<ArrivalMessage> arrivalMessages = TranslocApi.getArrivalTimes("");
 		
 		
 		for (ArrivalMessage message : arrivalMessages){
-			String routeName = getRouteNameFromID(routeList, message.getRouteId()).toUpperCase();
+			String routeName = getRouteNameFromID(routeList, message.getRouteId());
 			activeRoutes.put(routeName, true);
+			if (activeRoutes.size() == routeList.size()){ //this means all shuttles are currently active and have been accounted for, so we do not need to continue.
+				break;
+			}
 		}
 		
 		if (!activeRoutes.isEmpty()){
 			for (Route route : routeList){
-				String routeName = route.getLong_name().toUpperCase();
+				String routeName = route.getLong_name();
 				if (!activeRoutes.containsKey(routeName)){
-					activeRoutes.put(route.getLong_name().toUpperCase(), false);
+					activeRoutes.put(route.getLong_name(), false);
 				}
 			}
 		}
-		
 		return activeRoutes;
 	}
 	

@@ -16,7 +16,26 @@ import org.slf4j.LoggerFactory;
 
 public class JsonUtils {
 
+	
+	
 	private static Logger log = LoggerFactory.getLogger(JsonUtils.class);
+	
+	private static final String TRANSLOC_AUTHENTICATION_KEY;
+	
+	public static final boolean RUNNING_LOCALLY;
+	
+	static {
+		//when the code is run from lambda, this will return the environment variable key. In order to run locally, also need to include 
+		//a hard-coded key
+		String key = System.getenv("TRANSLOC_AUTHENTICATION_KEY");
+		if (key != null){
+			TRANSLOC_AUTHENTICATION_KEY = key;
+			RUNNING_LOCALLY = false;
+		} else {
+			TRANSLOC_AUTHENTICATION_KEY = "blLICP7BJ3msh38jJYgcX1xbchD5p13WjrsjsnaItLLLkF3bKx"; //so that the Driver class can still be used
+			RUNNING_LOCALLY = true;
+		}
+	}
 	
     private static String readAll(Reader rd) throws IOException {
     	log.info("readAll: reader={}", rd);
@@ -33,7 +52,7 @@ public class JsonUtils {
     	log.info("readJsonFromUrl: url={}", urlString);
     	URL url = new URL(urlString);
 		HttpURLConnection huc= (HttpURLConnection) url.openConnection();
-		huc.setRequestProperty("X-Mashape-Key", "blLICP7BJ3msh38jJYgcX1xbchD5p13WjrsjsnaItLLLkF3bKx");
+		huc.setRequestProperty("X-Mashape-Key", TRANSLOC_AUTHENTICATION_KEY);
 		huc.setRequestProperty("Accept", "application/json");
         InputStream is = huc.getInputStream();
         try {
