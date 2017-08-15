@@ -5,7 +5,7 @@ import java.util.Calendar;
 import java.util.List;
 import java.util.Map;
 
-import abarson.transloc.RiderSpeechlet;
+import abarson.transloc.CatRiderSpeechlet;
 import abarson.transloc.api.ArrivalMessage;
 import abarson.transloc.api.Route;
 import abarson.transloc.api.Stop;
@@ -74,7 +74,7 @@ public final class ResponseBuilder {
 		} else {
 			speech += String.format("Looks like there are no shuttles coming to %s any time soon.", stopName);
 		}
-		return new ResponseObject(speech, speech, RiderSpeechlet.INVOCATION_NAME, speech);
+		return new ResponseObject(speech, speech, CatRiderSpeechlet.INVOCATION_NAME, speech);
 	}
 	
 	public static List<ArrivalMessage> parseArrivals(List<ArrivalMessage> arrivals){
@@ -120,7 +120,7 @@ public final class ResponseBuilder {
 				speech += stopNames[i] + "\n";
 			}
 		}
-		return new ResponseObject(speech, speech, RiderSpeechlet.INVOCATION_NAME, speech);
+		return new ResponseObject(speech, speech, CatRiderSpeechlet.INVOCATION_NAME, speech);
 	}
 	
 	/**
@@ -148,17 +148,17 @@ public final class ResponseBuilder {
 				speech += routeNames[i] + "\n";
 			}
 		}
-		return new ResponseObject(speech, speech, RiderSpeechlet.INVOCATION_NAME, speech);
+		return new ResponseObject(speech, speech, CatRiderSpeechlet.INVOCATION_NAME, speech);
 	}
 	
 	public static ResponseObject getNoServiceResponse(){
 		String speech = "There are no shuttles currently running.";
-		return new ResponseObject(speech, speech, RiderSpeechlet.INVOCATION_NAME, speech);
+		return new ResponseObject(speech, speech, CatRiderSpeechlet.INVOCATION_NAME, speech);
 	}
 	
 	public static ResponseObject getStopResponse(){
 		String speech = "Okay, I'll stop.";
-		return new ResponseObject(speech, speech, RiderSpeechlet.INVOCATION_NAME, speech);
+		return new ResponseObject(speech, speech, CatRiderSpeechlet.INVOCATION_NAME, speech);
 	}
 	public static ResponseObject getHelpResponse(){
 		String speech = "If you provide me with a stop, I can tell you what shuttles are coming to that stop within"
@@ -166,20 +166,20 @@ public final class ResponseBuilder {
 				+ " shuttle is arriving at the stop you've provided. For information about which shuttles are active,"
 				+ " you can say \"Alexa, ask Rider what shuttles are active.\" What stop would you like "
 				+ " shuttle information for?";
-		return new ResponseObject(speech, speech, RiderSpeechlet.INVOCATION_NAME, speech);
+		return new ResponseObject(speech, speech, CatRiderSpeechlet.INVOCATION_NAME, speech);
 	}
 	
 	public static ResponseObject getWelcomeResponse(){
-		String speech = "Welcome to the University of Vermont Rider Skill! If you provide me with a stop, I can tell you what shuttles are coming to that stop within"
+		String speech = "Welcome to the University of Vermont Cat Rider Skill! If you provide me with a stop, I can tell you what shuttles are coming to that stop within"
 				+ " the next 30 minutes. For a list of all options, you can "
-				+ " say, \"Alexa, ask Rider for help.\" What stop would you like shuttle"
+				+ " say, \"Alexa, ask Cat Rider for help.\" What stop would you like shuttle"
 				+ " information for?";
-		return new ResponseObject(speech, speech, RiderSpeechlet.INVOCATION_NAME, speech);
+		return new ResponseObject(speech, speech, CatRiderSpeechlet.INVOCATION_NAME, speech);
 	}
 	
 	public static ResponseObject getApiErrorResponse(){
 		String speech = "I'm having trouble connecting to the Transloc API right now. Please try again later.";
-		return new ResponseObject(speech, speech, RiderSpeechlet.INVOCATION_NAME, speech);
+		return new ResponseObject(speech, speech, CatRiderSpeechlet.INVOCATION_NAME, speech);
 	}
 	
 	public static ResponseObject getInServiceShuttlesResponse(Map<String, Boolean> activeRoutes){
@@ -195,7 +195,7 @@ public final class ResponseBuilder {
 			}
 		}
 		
-		return new ResponseObject(speech, speech, RiderSpeechlet.INVOCATION_NAME, speech);
+		return new ResponseObject(speech, speech, CatRiderSpeechlet.INVOCATION_NAME, speech);
 	}
 	
 	@Deprecated
@@ -219,6 +219,6 @@ public final class ResponseBuilder {
 				}
 			}
 		}
-		return new ResponseObject(speech, speech, RiderSpeechlet.INVOCATION_NAME, speech);
+		return new ResponseObject(speech, speech, CatRiderSpeechlet.INVOCATION_NAME, speech);
 	}
 }
