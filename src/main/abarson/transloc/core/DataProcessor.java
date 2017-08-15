@@ -1,6 +1,7 @@
 package abarson.transloc.core;
 
 import java.io.IOException;
+import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -13,6 +14,7 @@ import abarson.transloc.api.ArrivalMessage;
 import abarson.transloc.api.Route;
 import abarson.transloc.api.Stop;
 import abarson.transloc.api.TranslocApi;
+import abarson.transloc.util.JsonUtils;
 
 /**
  * This class is responsible for processing data that has been retrieved from queries made to Transloc API.
@@ -26,6 +28,17 @@ public final class DataProcessor {
 	
 	private static Logger log = LoggerFactory.getLogger(DataProcessor.class);
 	
+	private static final String CURRENT_TIME;
+	
+	//Create one instance of the current time because constructing Calendar instances is expensive
+	static {
+		Calendar cal = Calendar.getInstance();
+		if (!JsonUtils.RUNNING_LOCALLY){
+			cal.set(Calendar.HOUR_OF_DAY, cal.get(Calendar.HOUR_OF_DAY) - 4); //account for UTC offset because of lambda
+		}
+		CURRENT_TIME = formatTime(cal.getTime().toString());
+	}
+	
 	/**
 	 * Given the current time and arrival time as Strings in the format (HH:mm:ss), get the amount of time
 	 * until the shuttle arrives.
@@ -35,11 +48,11 @@ public final class DataProcessor {
 	 * 			The arrival time of the shuttle (EDT for UVM)
 	 * @return The amount of time until the shuttle arrives.
 	 */
-	public static String calculateArrivalTime(String currentTime, String arrivalTime){ 
-		log.info("currentTime: {}, arrivalTime: {}", currentTime, arrivalTime);
+	public static String calculateArrivalTime(String arrivalTime){ 
+		log.info("currentTime: {}, arrivalTime: {}", CURRENT_TIME, arrivalTime);
 		
 		//create two arrays of Strings that contain the hour, minutes, and seconds in each index
-		String[]currentTimeSplit = currentTime.split(":");
+		String[]currentTimeSplit = CURRENT_TIME.split(":");
 		String[]arrivalTimeSplit = arrivalTime.split(":");
 		int[]estimation = new int[currentTimeSplit.length];
 		//TODO: add some exception handling somewhere
@@ -62,17 +75,6 @@ public final class DataProcessor {
 			theTime = "";
 		} else { //otherwise, format a String from the minutes and seconds
 			int minutes = estimation[1];
-			/*int seconds = estimation[2];
-			if (minutes < 10){
-				theTime += "0" + minutes + ":";
-			} else {
-				theTime += minutes +":";
-			}
-			if (seconds < 10){
-				theTime += "0" + seconds;
-			} else {
-				theTime += seconds + "";
-			}*/
 			if (minutes > 30){
 				theTime = ""; //ignore anything above 30 minutes
 			} else if (minutes < 1){

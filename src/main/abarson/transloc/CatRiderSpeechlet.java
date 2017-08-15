@@ -147,10 +147,10 @@ public class CatRiderSpeechlet implements SpeechletV2{
 			output = ResponseBuilder.getInServiceShuttlesResponse(activeRoutes);
 			return newTellResponse(output.getSsmlSpeech(), buildCard(output.getCardTitle(), output.getCardText()));
 		case "AMAZON.StopIntent":
-			output = ResponseBuilder.getStopResponse();
+			output = ResponseBuilder.getInterruptResponse();
 			return newTellResponse(output.getSsmlSpeech(), buildCard(output.getCardTitle(), output.getCardText()));
 		case "AMAZON.CancelIntent":
-			output = ResponseBuilder.getStopResponse();
+			output = ResponseBuilder.getInterruptResponse();
 			return newTellResponse(output.getSsmlSpeech(), buildCard(output.getCardTitle(), output.getCardText()));
 		case "AMAZON.HelpIntent":
 			output = ResponseBuilder.getHelpResponse();

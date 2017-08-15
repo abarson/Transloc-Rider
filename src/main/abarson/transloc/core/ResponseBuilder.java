@@ -1,7 +1,6 @@
 package abarson.transloc.core;
 
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.List;
 import java.util.Map;
 
@@ -9,7 +8,6 @@ import abarson.transloc.CatRiderSpeechlet;
 import abarson.transloc.api.ArrivalMessage;
 import abarson.transloc.api.Route;
 import abarson.transloc.api.Stop;
-import abarson.transloc.util.JsonUtils;
 
 /**
  * Produces responses for the different all possible scenarios the user may invoke.
@@ -17,6 +15,45 @@ import abarson.transloc.util.JsonUtils;
  *
  */
 public final class ResponseBuilder {
+	
+	//arrival time response
+	public static final String SHUTTLE_ARRIVING_NOW = "There is a %s shuttle arriving at %s %s";
+	public static final String SHUTTLE_ARRIVING_SOON = "There is a %s shuttle arriving at %s in %s";
+	public static final String LAST_TIME = ", and %s.";
+	public static final String NO_SHUTTLES_COMING = "Looks like there are no shuttles coming to %s any time soon.";
+	
+	//route information response
+	public static final String ROUTE_HAS_NO_STOPS = "The %s shuttle currently is not stopping anywhere.";
+	public static final String ROUTE_STOP_LIST = "The %s shuttle stops at the following locations:\n";
+	
+	//stop information response
+	public static final String STOP_HAS_NO_ROUTES = "There are currently no shuttles that stop at %s.";
+	public static final String STOP_ROUTE_LIST = "The following shuttles stop at %s:\n";
+	
+	//no service response
+	public static final String NO_SERVICE = "There are no shuttles currently running.";
+	
+	//interrupt response
+	public static final String INTERRUPT = "Okay, I'll stop.";
+	
+	//help response
+	public static final String HELP = "If you provide me with a stop, I can tell you what shuttles are coming to that stop within"
+			+ " the next 30 minutes. If you provide me a shuttle and a stop, I can tell you when that particular"
+			+ " shuttle is arriving at the stop you've provided. For information about which shuttles are active,"
+			+ " you can say \"Alexa, ask Rider what shuttles are active.\" What stop would you like "
+			+ " shuttle information for?";
+	
+	//welcome response
+	public static final String WELCOME = "Welcome to the University of Vermont Cat Rider Skill! If you provide me with a stop, I can tell you what shuttles are coming to that stop within"
+			+ " the next 30 minutes. For a list of all options, you can "
+			+ " say, \"Alexa, ask Cat Rider for help.\" What stop would you like shuttle"
+			+ " information for?";
+	
+	//api error response
+	public static final String API_ERROR = "I'm having trouble connecting to the Transloc API right now. Please try again later.";
+	
+	//active shuttles response
+	public static final String ACTIVE_ROUTES = "The %s shuttle is currently running.\n";
 	
 	private ResponseBuilder(){}
 	
@@ -49,45 +86,31 @@ public final class ResponseBuilder {
 				
 				routeName = nextRoute;
 				
-				/*String arrivalTime = DataProcessor.formatTime(message.getTime());
-				
-				Calendar cal = Calendar.getInstance();
-				if (!JsonUtils.RUNNING_LOCALLY){
-					cal.set(Calendar.HOUR_OF_DAY, cal.get(Calendar.HOUR_OF_DAY) - 4); //account for UTC offset because of lambda
-				}
-				String currentTime = DataProcessor.formatTime(cal.getTime().toString());
-				String differenceTime = DataProcessor.calculateArrivalTime(currentTime, arrivalTime);*/
-				
 				if (isNew){
 					if (message.getTime().equals("now")){
-						speech += String.format("There is a %s shuttle arriving at %s %s", routeName, stopName, message.getTime());
+						speech += String.format(SHUTTLE_ARRIVING_NOW, routeName, stopName, message.getTime());
 					} else {
-						speech += String.format("There is a %s shuttle arriving at %s in %s", routeName, stopName, message.getTime());
+						speech += String.format(SHUTTLE_ARRIVING_SOON, routeName, stopName, message.getTime());
 					}
 					speech += isLast ? "." : "";
 				} else if (isLast){
-					speech += String.format(", and %s.", message.getTime());
+					speech += String.format(LAST_TIME, message.getTime());
 				} else {
 					speech += String.format(", %s", message.getTime());
 				}
 			}
 		} else {
-			speech += String.format("Looks like there are no shuttles coming to %s any time soon.", stopName);
+			speech += String.format(NO_SHUTTLES_COMING, stopName);
 		}
 		return new ResponseObject(speech, speech, CatRiderSpeechlet.INVOCATION_NAME, speech);
 	}
 	
+	//TODO: This should me moved somewhere else
 	public static List<ArrivalMessage> parseArrivals(List<ArrivalMessage> arrivals){
 		List<ArrivalMessage> parsedArrivals = new ArrayList<ArrivalMessage>(arrivals.size());
 		for (ArrivalMessage message : arrivals){
 			String arrivalTime = DataProcessor.formatTime(message.getTime());
-			
-			Calendar cal = Calendar.getInstance();
-			if (!JsonUtils.RUNNING_LOCALLY){
-				cal.set(Calendar.HOUR_OF_DAY, cal.get(Calendar.HOUR_OF_DAY) - 4); //account for UTC offset because of lambda
-			}
-			String currentTime = DataProcessor.formatTime(cal.getTime().toString());
-			String differenceTime = DataProcessor.calculateArrivalTime(currentTime, arrivalTime);
+			String differenceTime = DataProcessor.calculateArrivalTime(arrivalTime);
 			if (!differenceTime.equals("")){
 				message.setTime(differenceTime);
 				parsedArrivals.add(message);
@@ -96,6 +119,8 @@ public final class ResponseBuilder {
 		return parsedArrivals;
 	}
 	
+	//TODO: Use a StringBuilder
+	//TODO: Not yet used in conversation
 	/**
 	 * Given a route name, this will tell you all stops the route visits.
 	 * @param stopList
@@ -113,9 +138,9 @@ public final class ResponseBuilder {
 		
 		String speech = "";
 		if (stopNames.length == 0){
-			speech += route.getLong_name() + " currently is not stopping anywhere.";
+			speech += String.format(ROUTE_HAS_NO_STOPS, route.getLong_name());
 		} else {
-			speech += "The " + route.getLong_name() + " shuttle stops at the following locations:\n";
+			speech += String.format(ROUTE_STOP_LIST, route.getLong_name());
 			for (int i = 0; i < stopNames.length; ++i){
 				speech += stopNames[i] + "\n";
 			}
@@ -123,6 +148,7 @@ public final class ResponseBuilder {
 		return new ResponseObject(speech, speech, CatRiderSpeechlet.INVOCATION_NAME, speech);
 	}
 	
+	//TODO: Not yet used in conversation
 	/**
 	 * This will tell you what routes (shuttles) arrive at a given stop. Provides no information about estimates.
 	 * @param stopList
@@ -139,11 +165,11 @@ public final class ResponseBuilder {
 		}
 		String speech = "";
 		if (routeNames.length == 0){
-			speech = "There are currently no shuttles that stop at " + stop.getName() + ".";
+			speech = String.format(STOP_HAS_NO_ROUTES, stop.getName());
 		} else {
 			for (int i = 0; i < routeNames.length; ++i){
 				if (i == 0){
-					speech += "The following shuttles stop at " + stop.getName() + ":\n";
+					speech += String.format(STOP_ROUTE_LIST, stop.getName());
 				}
 				speech += routeNames[i] + "\n";
 			}
@@ -152,36 +178,30 @@ public final class ResponseBuilder {
 	}
 	
 	public static ResponseObject getNoServiceResponse(){
-		String speech = "There are no shuttles currently running.";
+		String speech = NO_SERVICE;
 		return new ResponseObject(speech, speech, CatRiderSpeechlet.INVOCATION_NAME, speech);
 	}
 	
-	public static ResponseObject getStopResponse(){
-		String speech = "Okay, I'll stop.";
+	public static ResponseObject getInterruptResponse(){
+		String speech = INTERRUPT;
 		return new ResponseObject(speech, speech, CatRiderSpeechlet.INVOCATION_NAME, speech);
 	}
 	public static ResponseObject getHelpResponse(){
-		String speech = "If you provide me with a stop, I can tell you what shuttles are coming to that stop within"
-				+ " the next 30 minutes. If you provide me a shuttle and a stop, I can tell you when that particular"
-				+ " shuttle is arriving at the stop you've provided. For information about which shuttles are active,"
-				+ " you can say \"Alexa, ask Rider what shuttles are active.\" What stop would you like "
-				+ " shuttle information for?";
+		String speech = HELP;
 		return new ResponseObject(speech, speech, CatRiderSpeechlet.INVOCATION_NAME, speech);
 	}
 	
 	public static ResponseObject getWelcomeResponse(){
-		String speech = "Welcome to the University of Vermont Cat Rider Skill! If you provide me with a stop, I can tell you what shuttles are coming to that stop within"
-				+ " the next 30 minutes. For a list of all options, you can "
-				+ " say, \"Alexa, ask Cat Rider for help.\" What stop would you like shuttle"
-				+ " information for?";
+		String speech = WELCOME;
 		return new ResponseObject(speech, speech, CatRiderSpeechlet.INVOCATION_NAME, speech);
 	}
 	
 	public static ResponseObject getApiErrorResponse(){
-		String speech = "I'm having trouble connecting to the Transloc API right now. Please try again later.";
+		String speech = API_ERROR;
 		return new ResponseObject(speech, speech, CatRiderSpeechlet.INVOCATION_NAME, speech);
 	}
 	
+	//TODO: Make this sound better
 	public static ResponseObject getInServiceShuttlesResponse(Map<String, Boolean> activeRoutes){
 		
 		if (activeRoutes.isEmpty()){
@@ -191,7 +211,7 @@ public final class ResponseBuilder {
 		String speech = "";
 		for (String routeName : activeRoutes.keySet()){
 			if (activeRoutes.get(routeName)){
-				speech += "The " + routeName + " shuttle is currently running.\n";
+				speech += String.format(ACTIVE_ROUTES, routeName);
 			}
 		}
 		
