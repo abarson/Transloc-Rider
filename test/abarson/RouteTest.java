@@ -21,6 +21,7 @@ public class RouteTest {
 	@BeforeClass
 	public static void initialize(){
 		try {
+			TranslocApi.getStops();
 			translocRoutes = TranslocApi.getRoutes();
 		} catch (JSONException | IOException e){
 			fail("Failed to connect to Transloc API: " + e.getMessage());
@@ -38,7 +39,9 @@ public class RouteTest {
 		for (Route route : translocRoutes){
 			String routeName = route.getLong_name();
 			if (!RouteCorrector.getExpectedRoutes().containsValue(routeName)){
-				missingRoutes.add(routeName);
+				if (!missingRoutes.contains(routeName)){
+					missingRoutes.add(routeName);
+				}
 			}
 		}
 		
@@ -65,7 +68,9 @@ public class RouteTest {
 		List<String> nonExistentRoutes = new ArrayList<String>();
 		for (String routeFromCorrector : RouteCorrector.getExpectedRoutes().values()){
 			if (!translocRouteNames.contains(routeFromCorrector)){
-				nonExistentRoutes.add(routeFromCorrector);
+				if (!nonExistentRoutes.contains(routeFromCorrector)){
+					nonExistentRoutes.add(routeFromCorrector);
+				}
 			}
 		}
 		

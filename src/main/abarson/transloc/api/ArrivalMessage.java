@@ -6,7 +6,7 @@ package abarson.transloc.api;
  * @author adambarson
  *
  */
-public class ArrivalMessage {
+public class ArrivalMessage implements Comparable<ArrivalMessage>{
 	private String routeId;
 	private String stopId;
 	private String time;
@@ -35,4 +35,11 @@ public class ArrivalMessage {
 	public void setStopId(String stopId) {
 		this.stopId = stopId;
 	}
+
+	@Override
+	public int compareTo(ArrivalMessage o) {
+		return getRouteId().compareTo(o.getRouteId());
+	}
+	
+	
 }

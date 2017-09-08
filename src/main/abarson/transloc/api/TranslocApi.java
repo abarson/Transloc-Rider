@@ -15,6 +15,7 @@ import abarson.transloc.util.JsonUtils;
  * @author adambarson
  *
  */
+
 public final class TranslocApi {
 	public static final String urlRoot = "https://transloc-api-1-2.p.mashape.com/%s.json?agencies=603&callback=call";
 	public static final String routeParameter = "&routes=%s";

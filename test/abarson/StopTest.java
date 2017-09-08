@@ -39,7 +39,9 @@ public class StopTest {
 		for (Stop stop : translocStops){
 			String stopName = stop.getName();
 			if (!StopCorrector.getExpectedStops().containsValue(stopName)){
-				missingStops.add(stopName);
+				if (!missingStops.contains(stopName)){
+					missingStops.add(stopName);
+				}
 			}
 		}
 		
@@ -67,7 +69,9 @@ public class StopTest {
 		List<String> nonExistentStops = new ArrayList<String>();
 		for (String stopFromCorrector : StopCorrector.getExpectedStops().values()){
 			if (!translocStopNames.contains(stopFromCorrector)){
-				nonExistentStops.add(stopFromCorrector);
+				if (!nonExistentStops.contains(stopFromCorrector)){
+					nonExistentStops.add(stopFromCorrector);
+				}
 			}
 		}
 		

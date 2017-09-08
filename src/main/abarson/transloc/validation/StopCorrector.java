@@ -52,7 +52,7 @@ public final class StopCorrector {
 			put("BAILEY-HOWE LIBRARY", "BAILEY-HOWE LIBRARY");
 			put("THE LIBRARY", "BAILEY-HOWE LIBRARY");
 			put("LIBRARY", "BAILEY-HOWE LIBRARY");
-			put("CBW", "CBW");
+			put("CBW", "CBW"); //out-of-season as of 9/7/2017
 			put("GIVEN/ROWELL", "GIVEN/ROWELL");
 			put("DAVIS SOUTH", "DAVIS SOUTH");
 			put("COOLIDGE HALL", "COOLIDGE HALL");
@@ -66,6 +66,7 @@ public final class StopCorrector {
 			put("WATERMAN", "WATERMAN");
 			put("QUARRY HILL ROAD", "QUARRY HILL ROAD");
 			put("SHERATON", "SHERATON"); //out-of-season as of 8/8/2017
+			put("MARSH LIFE", "MARSH LIFE"); //added 9/7/17
 		}
 	};
 	

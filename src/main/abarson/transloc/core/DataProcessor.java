@@ -54,12 +54,17 @@ public final class DataProcessor {
 		//create two arrays of Strings that contain the hour, minutes, and seconds in each index
 		String[]currentTimeSplit = CURRENT_TIME.split(":");
 		String[]arrivalTimeSplit = arrivalTime.split(":");
+	
 		int[]estimation = new int[currentTimeSplit.length];
 		//TODO: add some exception handling somewhere
 		for (int i = currentTimeSplit.length - 1; i >= 0; i--){ 
 			//convert the Strings into integers and find the difference between them
 			int cur = Integer.parseInt(currentTimeSplit[i]);
 			int arr = Integer.parseInt(arrivalTimeSplit[i]);
+			
+			if (i == 0 && cur > arr){
+				arr += 24;
+			}
 			int dif = arr - cur;
 			//if this results in a negative number, we need to "borrow" from the next index
 			if (dif < 0){

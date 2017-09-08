@@ -1,8 +1,14 @@
 package abarson.transloc.core;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
+
+import javax.sql.rowset.Predicate;
 
 import abarson.transloc.CatRiderSpeechlet;
 import abarson.transloc.api.ArrivalMessage;
@@ -78,11 +84,20 @@ public final class ResponseBuilder {
 			boolean isNew = false;
 			boolean isLast = false;
 			String routeName = "";
-			for (ArrivalMessage message : arrivals){
+			
+			for (int i = 0; i < arrivals.size(); ++i){
+				ArrivalMessage message = arrivals.get(i);
+				
 				String nextRoute = DataProcessor.getRouteNameFromID(routeList, message.getRouteId());
 				
 				isNew = nextRoute.equals(routeName) ? false : true;
-				isLast = message == arrivals.get(arrivals.size() - 1);
+				
+				if (i < arrivals.size() - 1){
+					isLast = !nextRoute.equals(DataProcessor.getRouteNameFromID(routeList, arrivals.get(i + 1).getRouteId()));
+				} else {
+					isLast = true;
+				}
+				
 				
 				routeName = nextRoute;
 				
@@ -92,9 +107,9 @@ public final class ResponseBuilder {
 					} else {
 						speech += String.format(SHUTTLE_ARRIVING_SOON, routeName, stopName, message.getTime());
 					}
-					speech += isLast ? "." : "";
+					speech += isLast ? ". " : "";
 				} else if (isLast){
-					speech += String.format(LAST_TIME, message.getTime());
+					speech += String.format(LAST_TIME, message.getTime()) + " ";
 				} else {
 					speech += String.format(", %s", message.getTime());
 				}
@@ -116,6 +131,7 @@ public final class ResponseBuilder {
 				parsedArrivals.add(message);
 			}
 		}
+		Collections.sort(parsedArrivals);
 		return parsedArrivals;
 	}
 	
@@ -208,15 +224,35 @@ public final class ResponseBuilder {
 			return getNoServiceResponse();
 		} 
 		
-		String speech = "";
-		for (String routeName : activeRoutes.keySet()){
-			if (activeRoutes.get(routeName)){
-				speech += String.format(ACTIVE_ROUTES, routeName);
+		//filter out any inactive routes from the route map and put them into a list
+		List<String> active = activeRoutes.entrySet()
+											.stream()
+											.filter(x -> x.getValue() == true)
+											.map(x -> x.getKey())
+											.collect(Collectors.toList());
+		
+		StringBuilder speech = new StringBuilder();
+		
+		speech.append("The ");
+		speech.append(active.get(0));
+		for (int i = 1; i < active.size(); ++i){
+			if (i != active.size() - 1){
+				speech.append(", ");
+			} else {
+				speech.append(", and ");
 			}
+			speech.append(active.get(i));
 		}
 		
-		return new ResponseObject(speech, speech, CatRiderSpeechlet.INVOCATION_NAME, speech);
+		if (active.size() > 1){
+			speech.append(" shuttles are currently in service.");
+		} else {
+			speech.append(" shuttle is currently in service.");
+		}
+		
+		return new ResponseObject(speech.toString(), speech.toString(), CatRiderSpeechlet.INVOCATION_NAME, speech.toString());
 	}
+	
 	
 	@Deprecated
 	/**
@@ -241,4 +277,19 @@ public final class ResponseBuilder {
 		}
 		return new ResponseObject(speech, speech, CatRiderSpeechlet.INVOCATION_NAME, speech);
 	}
+	
+	/*
+	public static void main(String [] args){
+		Map<String, Boolean> activeRoutes = new HashMap<String, Boolean>();
+		activeRoutes.put("ON CAMPUS", true);
+		activeRoutes.put("REDSTONE", false);
+		activeRoutes.put("OFF CAMPUS", true);
+		activeRoutes.put("LATE NIGHT", false);
+		
+		List<String> active = activeRoutes.entrySet()
+				.stream()
+				.filter(x -> x.getValue() == true)
+				.map(x -> x.getKey())
+				.collect(Collectors.toList());
+	}*/
 }
