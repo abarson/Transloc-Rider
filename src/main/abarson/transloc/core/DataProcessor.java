@@ -28,15 +28,19 @@ public final class DataProcessor {
 	
 	private static Logger log = LoggerFactory.getLogger(DataProcessor.class);
 	
-	private static final String CURRENT_TIME;
+	private static String CURRENT_TIME;
 	
 	//Create one instance of the current time because constructing Calendar instances is expensive
-	static {
+	public static void setTime(){
 		Calendar cal = Calendar.getInstance();
 		if (!JsonUtils.RUNNING_LOCALLY){
 			cal.set(Calendar.HOUR_OF_DAY, cal.get(Calendar.HOUR_OF_DAY) - 4); //account for UTC offset because of lambda
 		}
 		CURRENT_TIME = formatTime(cal.getTime().toString());
+	}
+	
+	public static String getCurrentTime(){
+		return CURRENT_TIME;
 	}
 	
 	/**

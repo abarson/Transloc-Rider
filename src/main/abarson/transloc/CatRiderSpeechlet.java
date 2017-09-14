@@ -74,6 +74,7 @@ public class CatRiderSpeechlet implements SpeechletV2{
 
 	@Override
 	public SpeechletResponse onIntent(SpeechletRequestEnvelope<IntentRequest> requestEnvelope) {
+		DataProcessor.setTime();
 		Session session = requestEnvelope.getSession();
 		IntentRequest request = requestEnvelope.getRequest();
 		log.info("onIntent requestId={}, sessionId={}", request.getRequestId(),
@@ -162,11 +163,15 @@ public class CatRiderSpeechlet implements SpeechletV2{
 		}
 		} catch (InvalidInputException e){
 			return newAskResponse(e.getMessage() + " Please repeat your stop.", "Please repeat your stop.");
-		} catch (StopException | IOException | JSONException e){
+		} catch (StopException e){
 			speech = new PlainTextOutputSpeech();
 			speech.setText(e.getMessage());
 			return SpeechletResponse.newTellResponse(speech, buildCard(INVOCATION_NAME, e.getMessage()));
-		} 
+		} catch (IOException | JSONException e){
+			log.error(e.getMessage());
+			output = ResponseBuilder.getApiErrorResponse();
+			return newTellResponse(output.getSsmlSpeech());
+		}
 	}
 
 	@Override

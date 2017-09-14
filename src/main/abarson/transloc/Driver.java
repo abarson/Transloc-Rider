@@ -27,6 +27,7 @@ import abarson.transloc.validation.Validator;
  */
 public class Driver {
 	public static void main(String [] args) {
+		DataProcessor.setTime();
 		List<Stop> stopList;
 		List<Route> routeList;
 		Map<String, Boolean> activeRoutes;
